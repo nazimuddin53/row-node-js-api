@@ -8,9 +8,10 @@
 // Dependencies
 const  url = require('url');
 const {StringDecoder} = require('string_decoder');
-const routes = require('../routes')
+const routes = require('../routes');
 
-const {notFoundHandler} = require('../handlers/routeHandlers/notFoundHandler')
+const {notFoundHandler} = require('../handlers/routeHandlers/notFoundHandler');
+const utilite = require('./utilite');
 
 
 // Object - Module scaffolding 
@@ -33,24 +34,12 @@ handle.handleReqRes = (req,res) =>{
         method,
         queryStringObject,
         headersObject,
-    }
+    };
 
     const decoder = new StringDecoder('utf-8');
     let realData = '';
 
     const chosenHandler = routes[trimmedPath] ? routes[trimmedPath] : notFoundHandler;
-
-    chosenHandler(requestProperties, (statusCode, payload) => {
-        statusCode = typeof(statusCode) === 'number'? statusCode: 500;
-        payload = typeof(payload) === 'object'? payload:{};
-
-        // respos json 
-        const payloadString = JSON.stringify(payload);
-
-        // return the final response 
-        res.writeHead(statusCode);
-        res.end(payloadString);
-    });
 
     req.on('data',(buffer) => {
         realData += decoder.write(buffer);
@@ -59,11 +48,26 @@ handle.handleReqRes = (req,res) =>{
     req.on('end', () => {
         realData += decoder.end();
 
-        console.log(realData);
+        requestProperties.body = utilite.parseJSON( realData )
+        // chosenHandler 
+        chosenHandler(requestProperties, (statusCode, payload) => {
+            statusCode = typeof(statusCode) === 'number'? statusCode: 500;
+            payload = typeof(payload) === 'object'? payload:{};
+    
+            // respos json 
+            const payloadString = JSON.stringify(payload);
+    
+            // return the final response 
+            res.setHeader('Content-type', 'application/json')
+            res.writeHead(statusCode);
+            res.end(payloadString);
+        });
+        
+        // response handel 
+
     })
   
-    // response handel 
-    res.end("Hello programer")
+   
 }
 
 // export handler

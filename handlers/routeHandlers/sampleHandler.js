@@ -14,6 +14,7 @@ handler.sampleHandler = (requestProperties, callback) => {
     callback(200,{
         message:" this is sample page",
     });  
-};
+}
 
+// export handler
 module.exports = handler;
