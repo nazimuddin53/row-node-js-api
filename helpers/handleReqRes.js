@@ -6,18 +6,18 @@
  */
 
 // Dependencies
-const  url = require('url');
-const {StringDecoder} = require('string_decoder');
+const url = require('url');
+const { StringDecoder } = require('string_decoder');
 const routes = require('../routes');
 
-const {notFoundHandler} = require('../handlers/routeHandlers/notFoundHandler');
-const utilite = require('./utilite');
+const { notFoundHandler } = require('../handlers/routeHandlers/notFoundHandler');
+const utilities = require('./utilities');
 
 
 // Object - Module scaffolding 
 const handle = {};
 
-handle.handleReqRes = (req,res) =>{
+handle.handleReqRes = (req, res) => {
     // request handling
     // get the url and parse it
     const parsedUrl = url.parse(req.url, true);
@@ -41,33 +41,33 @@ handle.handleReqRes = (req,res) =>{
 
     const chosenHandler = routes[trimmedPath] ? routes[trimmedPath] : notFoundHandler;
 
-    req.on('data',(buffer) => {
+    req.on('data', (buffer) => {
         realData += decoder.write(buffer);
     });
 
     req.on('end', () => {
         realData += decoder.end();
 
-        requestProperties.body = utilite.parseJSON( realData )
+        requestProperties.body = utilities.parseJSON(realData)
         // chosenHandler 
         chosenHandler(requestProperties, (statusCode, payload) => {
-            statusCode = typeof(statusCode) === 'number'? statusCode: 500;
-            payload = typeof(payload) === 'object'? payload:{};
-    
+            statusCode = typeof (statusCode) === 'number' ? statusCode : 500;
+            payload = typeof (payload) === 'object' ? payload : {};
+
             // respos json 
             const payloadString = JSON.stringify(payload);
-    
+
             // return the final response 
             res.setHeader('Content-type', 'application/json')
             res.writeHead(statusCode);
             res.end(payloadString);
         });
-        
+
         // response handel 
 
     })
-  
-   
+
+
 }
 
 // export handler
